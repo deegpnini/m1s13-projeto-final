@@ -17,7 +17,7 @@ from imblearn.over_sampling import SMOTE
 # ==========================================
 # FASE 1: ANÁLISE EXPLORATÓRIA (EDA)
 # ==========================================
-df = pd.read_csv('manutencao_preditiva.csv')
+df = pd.read_csv('data/manutencao_preditiva.csv')
 print("Dimensões:", df.shape)
 print(df.describe())
 print(df['falha_maquina'].value_counts(normalize=True) * 100)
