@@ -136,7 +136,7 @@ O dashboard roda **localmente** na máquina de quem for avaliar. Não é um site
    pip install streamlit
    streamlit run dashboard.py
 3. O Streamlit vai mostrar um link no terminal, algo como:
-   Local URL: http://localhost:8501
+   Local URL: http://localhost:8503
 4. Copie esse link e cole no navegador. O dashboard abrirá.
 
 **Importante:** o link `localhost` só funciona na máquina onde o dashboard está rodando. Por isso, o avaliador precisa executar o comando acima para ver o painel.
