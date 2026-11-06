@@ -22,7 +22,7 @@ O dataset tem 10.000 amostras, sendo que **96,6% são normais e apenas 3,4% são
 
 Antes de migrar para a tecnologia, trabalhei com pintura, elétrica e serviços gerais. Essa experiência de campo orientou uma decisão do projeto: criar uma variável de **potência** (torque × velocidade de rotação), porque em máquina o que importa é a combinação das grandezas, e não cada leitura isolada.
 
-A análise de importância das variáveis confirmou esse caminho: rotação (0,42) e torque (0,29) dominam o modelo.
+A análise de importância das variáveis confirmou esse caminho: a **potência** ficou em segundo lugar (0,289), e o torque sozinho quase não pesou (0,010). A variável que criei absorveu a informação do torque. A rotação liderou (0,412) e o desgaste veio em terceiro (0,195).
 
 ## 3. As 7 Fases do Pipeline
 
@@ -43,8 +43,8 @@ A análise de importância das variáveis confirmou esse caminho: rotação (0,4
 - **Nulos:** 0 após imputação.
 
 ### Fase 4: Divisão e Balanceamento
-- **Split:** 80/20 com stratify=y.
-- **SMOTE:** apenas no treino (7.600 → 15.458 amostras balanceadas).
+- **Split:** 80/20 com stratify=y (8.000 treino, 2.000 teste).
+- **SMOTE:** apenas no treino (8.000 → 15.458 amostras balanceadas, 7.729 por classe).
 
 ### Fase 5: Escalonamento
 - **KNN:** fit_transform no treino, transform no teste.
@@ -61,84 +61,16 @@ A análise de importância das variáveis confirmou esse caminho: rotação (0,4
 | KNN (K=5) | 0,896 |
 | Árvore (max_depth=5) | 0,902 |
 
-**Modelo escolhido:** Árvore de Decisão (maior acurácia no teste).
+**Modelo escolhido:** Árvore de Decisão (max_depth=5), pela configuração mais estável (menor gap treino/teste).
 
-**Sobre o KNN:** K=3 ganhou no teste (0,905), mas K=5 foi escolhido por ter menor gap treino-teste (menos overfitting).
+**Sobre o KNN:** K=3 ganhou no teste (0,905), mas K=5 foi escolhido por ser um meio-termo (gap treino-teste menor). No KNN, os gaps dos três K são praticamente empatados (0,059, 0,057 e 0,058).
 
 ## 4. Como Executar o Projeto
 
-git clone git@github.com:deegpnini/m1s13-projeto-final.git
+```bash
+git clone https://github.com/deegpnini/m1s13-projeto-final.git
 cd m1s13-projeto-final
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 python pipeline_m1s13.py
-
-**Script oficial:** pipeline_m1s13.py (as 7 fases do edital).
-
-## 5. Dashboard Interativo (Extra)
-
-Criei um dashboard em Streamlit (dashboard.py) para mostrar o modelo "operando" uma máquina. O operador ajusta os sliders (torque, rpm, desgaste, temperaturas) e o painel mostra:
-- A potência calculada (torque × rpm).
-- O status da máquina: verde (normal) ou vermelho (alerta de falha).
-- A acurácia do modelo (0,902).
-
-Para rodar:
-pip install streamlit
-streamlit run dashboard.py
-
-## 6. Git
-
-- **Branch principal:** master (código final).
-- **Branch de desenvolvimento:** develop (ajustes e experimentos).
-
-## 7. Limitações (Honestidade Radical)
-
-- **Precisão baixa:** a acurácia é alta (0,902), mas a precisão da classe falha é baixa. Em produção, muitos alarmes falsos ocorreriam.
-- **Overfitting:** max_depth=None decorou o treino. A configuração escolhida (max_depth=5) evita isso.
-- **Dados estáticos:** o dataset é um retrato fixo, sem série temporal.
-- **Acurácia engana:** com 96,6% de máquinas normais, um modelo que chuta "tudo normal" acerta quase isso.
-
-## 8. Melhorias Futuras
-
-- Validação cruzada para medir a variação da acurácia.
-- Testar Random Forest e Gradient Boosting.
-- Ajustar o limiar de decisão para reduzir alarmes falsos.
-
-## 9. Tecnologias
-
-Python, Pandas, NumPy, Scikit-learn, Imbalanced-learn, Matplotlib, Seaborn e Streamlit.
-
-Usei ferramentas de inteligência artificial como apoio, mas conferi e validei os resultados por conta própria.
-
-## 10. Vídeo de Apresentação
-
-O vídeo de até 7 minutos, com a demonstração do terminal e do dashboard, está disponível no link abaixo:
-[COLE AQUI O LINK DO GOOGLE DRIVE QUANDO GRAVAR]
-
----
-
-**Helyton Renato Gonçalves Ronchi**, novembro de 2026.
-
-## 5.1. Código do Dashboard
-
-O código do dashboard está disponível no repositório:
-https://github.com/deegpnini/m1s13-projeto-final/blob/master/dashboard.py
-
-Para rodar na sua máquina:
-pip install streamlit
-streamlit run dashboard.py
-
-## 5.2. Como visualizar o dashboard
-
-O dashboard roda **localmente** na máquina de quem for avaliar. Não é um site público. Para visualizar:
-
-1. Abra o terminal na pasta do projeto.
-2. Rode:
-   pip install streamlit
-   streamlit run dashboard.py
-3. O Streamlit vai mostrar um link no terminal, algo como:
-   Local URL: http://localhost:8503
-4. Copie esse link e cole no navegador. O dashboard abrirá.
-
-**Importante:** o link `localhost` só funciona na máquina onde o dashboard está rodando. Por isso, o avaliador precisa executar o comando acima para ver o painel.
