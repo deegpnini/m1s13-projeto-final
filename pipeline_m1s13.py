@@ -128,7 +128,22 @@ tree_final = DecisionTreeClassifier(max_depth=5, random_state=42)
 tree_final.fit(X_train_res, y_train_res)
 acc_tree = accuracy_score(y_test, tree_final.predict(X_test))
 
+
+# ==========================================
+# RESULTADO FINAL
+# ==========================================
 print(f"\n=== RESULTADO FINAL ===")
-print(f"Acurácia KNN (K=5): {acc_knn:.3f}")
+print(f"Treino original: {X_train.shape} | Teste: {X_test.shape}")
+print(f"Treino após SMOTE: {X_train_res.shape}")
+
+importancias = pd.Series(tree_final.feature_importances_, index=X.columns).sort_values(ascending=False)
+print("\n--- Importância das Variáveis ---")
+print(importancias.round(3))
+
+from sklearn.metrics import classification_report
+print("\n--- Classification Report (Árvore max_depth=5) ---")
+print(classification_report(y_test, tree_final.predict(X_test), target_names=['Normal', 'Falha']))
+
+print(f"\nAcurácia KNN (K=5): {acc_knn:.3f}")
 print(f"Acurácia Árvore (max_depth=5): {acc_tree:.3f}")
-print(f"Modelo escolhido: {'KNN' if acc_knn > acc_tree else 'Árvore de Decisão'} (maior acurácia no teste)")
+print("\nModelo escolhido: Árvore de Decisão (max_depth=5), pela configuração mais estável (menor gap treino/teste).")
