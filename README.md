@@ -1,94 +1,83 @@
-# Manutenção Preditiva: Classificação de Falhas em Máquinas Industriais
+# Prevendo Falhas em Máquinas: Projeto Final do Módulo 1
 
-Projeto avaliativo do Módulo 1 do curso **Desenvolvimento de IA para Análise Preditiva** (SCTEC/SENAI).
+Este é o meu projeto final do Módulo 1 do curso **Desenvolvimento de IA para Análise Preditiva**, no SCTEC/SENAI.
 
-**Autor:** Helyton Renato Gonçalves Ronchi · São Ludgero, SC
+**Autor:** Helyton Renato Gonçalves Ronchi, de São Ludgero, SC
 **LinkedIn:** linkedin.com/in/helytonronchi
 
 ---
 
-## 1. Objetivo
+## A ideia do projeto
 
-Construir um modelo de classificação que indique, a partir de leituras de sensores, se uma máquina vai falhar. O foco é reduzir paradas não planejadas: em manutenção, deixar a falha passar custa muito mais do que parar a máquina por precaução. Por isso o projeto é avaliado por **custo de erro**, e não só por acurácia.
+Quando uma máquina quebra no meio do trabalho, a fábrica para, o prejuízo vem e ninguém estava esperando. Eu quis construir um programa que olhasse os dados da máquina (temperatura, velocidade, força e desgaste) e avisasse antes se ela está perto de falhar.
 
-## 2. Origem do olhar técnico
+Uma regra guiou o projeto inteiro: **deixar uma falha passar sai muito mais caro do que parar a máquina à toa.** Por isso, nas contas, tratei uma falha não avisada como 10 vezes pior que um alarme falso.
 
-Antes de migrar para tecnologia, trabalhei com pintura, elétrica e serviços gerais. Essa experiência de campo orientou uma decisão do projeto: criar uma variável de **potência** (torque × velocidade de rotação), porque em máquina o que importa é a combinação das grandezas, e não cada leitura isolada. A análise de importância das variáveis confirmou esse caminho (seção 6).
+## De onde vem o meu jeito de olhar
 
-## 3. Dados
+Antes de entrar na tecnologia, trabalhei com pintura, elétrica e serviços gerais. Quem trabalha com elétrica aprende cedo que a força de um motor depende de duas coisas juntas: o torque e a velocidade. Foi por isso que fui conferir também a **potência** (torque vezes rotação). Não bastava olhar cada número sozinho.
 
-| Item | Valor |
-|---|---|
-| Fonte | Dataset de manutenção preditiva fornecido no curso (arquivo `manutencao_preditiva.csv`) |
-| Tamanho original | 10.000 amostras |
-| Classe alvo | `falha_maquina` (0 = normal, 1 = falha) |
-| Desbalanceamento | cerca de 96,6% normal e 3,4% falha |
-| Variáveis usadas | tipo do produto, temperatura do ar, temperatura do processo, velocidade de rotação, torque e desgaste da ferramenta |
+## Os dados
 
-## 4. Metodologia
+- Usei o arquivo de manutenção preditiva do curso, com **10.000 máquinas**.
+- Só **3,4%** delas tinham falha. Ou seja, quase tudo é "normal", e isso atrapalha o programa a aprender o que é falha.
+- Tirei 500 linhas que tinham informação faltando. Sobraram 9.500.
 
-1. **Limpeza:** remoção de 500 linhas com valores nulos (restaram 9.500).
-2. **Prevenção de vazamento de dados:** remoção das colunas `falha_twf`, `falha_hdf`, `falha_pwf`, `falha_osf` e `falha_rnf`. Elas indicam o tipo da falha e entregariam a resposta ao modelo.
-3. **Codificação:** Label Encoding da coluna `tipo` (L, M, H).
-4. **Divisão dos dados:** treino, validação e teste separados. O teste só é usado uma vez, no final.
-5. **Balanceamento:** SMOTE aplicado **apenas no treino**, para não contaminar a validação nem o teste.
-6. **Modelos comparados:** KNN e Árvore de Decisão.
-7. **Escolha da profundidade da árvore por custo:** uma falha não prevista pesa 10 vezes mais que um alarme falso. A profundidade com menor custo na validação foi a escolhida.
+## O que eu fiz, passo a passo
 
-## 5. Resultados (conjunto de teste, 1.900 amostras)
+1. **Limpei os dados**, tirando as linhas incompletas.
+2. **Tirei as colunas que entregavam a resposta.** Existem colunas que dizem o tipo da falha (`falha_twf`, `falha_hdf`, `falha_pwf`, `falha_osf`, `falha_rnf`). Se eu deixasse, o programa estaria colando da prova. Isso se chama vazamento de dados.
+3. **Transformei o tipo da máquina (L, M, H) em números**, porque o programa só entende números.
+4. **Separei os dados em três partes:** uma para treinar, uma para ajustar e uma para o teste final. O teste só foi usado no fim, uma vez.
+5. **Equilibrei o treino com SMOTE.** Como as falhas eram poucas, criei exemplos parecidos com as reais, só na parte do treino, para o teste continuar honesto.
+6. **Comparei dois modelos:** o KNN e a Árvore de Decisão.
+7. **Escolhi o tamanho da árvore pelo custo**, e não pelo palpite. Ficou com a profundidade 10, a de menor custo na validação.
 
-Árvore de Decisão, profundidade 10:
+## Resultado no teste final
 
-| Métrica (classe falha) | Valor |
-|---|---|
-| Recall | 0,78 |
-| Precisão | 0,29 |
-| F1-score | 0,43 |
-| Acurácia geral | 0,93 |
-| Custo no teste | 260 |
+O teste usou 1.900 máquinas que o programa nunca tinha visto.
 
-Comparação na validação:
-
-| Modelo | Recall | Custo |
+| O que foi medido | Resultado | Em palavras simples |
 |---|---|---|
-| KNN | 0,69 | 340 |
-| Árvore, profundidade 10 | 0,71 | 287 |
-| Árvore, profundidade 5 | 0,80 | 288 |
+| Recall | 0,78 | De cada 100 falhas reais, o programa avisou cerca de 78 |
+| Precisão | 0,29 | Quando ele avisa que vai falhar, acerta perto de 3 vezes em cada 10 |
+| Acurácia | 0,93 | Acerta 93% no geral, mas esse número engana, porque quase tudo é normal |
+| Custo | 260 | Quanto menor, melhor. É a nossa conta de prejuízo |
 
-As profundidades 5 e 10 ficaram praticamente empatadas em custo. A 10 foi adotada pelo critério definido antes do teste (menor custo).
+Na etapa de ajuste, o KNN ficou com custo 340 e a árvore com custo 287. A árvore foi melhor para o que eu queria.
 
-## 6. Variáveis mais importantes
+As profundidades 5 e 10 ficaram quase empatadas (custo 288 e 287). Fiquei com a 10 porque segui a regra que eu tinha definido antes de olhar o teste.
 
-| Posição | Variável | Importância |
+## O que mais pesou na decisão do programa
+
+| Posição | Informação | Peso |
 |---|---|---|
-| 1 | `velocidade_rotacao_rpm` | 0,42 |
-| 2 | `torque_nm` | 0,29 |
-| 3 | `desgaste_ferramenta_min` | 0,20 |
-| 4 | `temperatura_ar_k` | 0,04 |
-| 5 | `temperatura_processo_k` | 0,03 |
+| 1 | Velocidade de rotação | 0,42 |
+| 2 | Torque | 0,29 |
+| 3 | Desgaste da ferramenta | 0,20 |
+| 4 | Temperatura do ar | 0,04 |
+| 5 | Temperatura do processo | 0,03 |
 
-Rotação e torque dominam o modelo, o que é coerente com a física: potência é o produto dos dois.
+Rotação e torque foram os que mais pesaram, e isso faz sentido: eles formam a potência da máquina. Conferi a potência à parte. Das 322 falhas, 91 aconteceram fora da faixa de 3.500 a 9.000 W, e nenhuma máquina normal ficou fora dessa faixa.
 
-Teste complementar com a potência (torque × rpm): das 322 falhas, 91 ficaram fora da faixa de 3.500 a 9.000 W, e nenhuma máquina normal ficou fora dessa faixa.
+## Como eu me certifiquei de que não foi sorte
 
-## 7. Validação do pipeline
+Antes de confiar no resultado, rodei o mesmo programa com dados inventados, sem nenhuma ligação entre as informações e a falha. Ali o programa praticamente chutou: acertou só **17%** das falhas. Com os dados reais, ele acertou **78%**. Isso me mostrou que o ganho vem dos dados e não de algum erro meu no código.
 
-Antes de confiar no resultado, rodei o mesmo código em um conjunto sintético com dados aleatórios (sem relação entre variáveis e falha). O recall no teste ficou em **0,17**, nível de chute. Com os dados reais, ficou em **0,78**. Isso indica que o ganho vem do sinal nos dados, e não de erro no código.
+## O que ainda não está bom
 
-## 8. Limitações
+- **Muito alarme falso.** A precisão de 0,29 é baixa. Escolhi assim de propósito, porque prefiro um alarme à toa a uma máquina quebrada. Mas na prática isso daria trabalho para a equipe.
+- **O programa decorou parte do treino.** No treino ele pegou quase todas as falhas (0,995), mas no teste pegou 0,78. É um sinal de que ele se apegou demais aos exemplos que viu.
+- **Os dados são uma foto parada.** Não têm o passar do tempo nem informação de uma fábrica de verdade.
+- **Testei uma vez só.** Não fiz a validação cruzada, que daria mais segurança no resultado.
 
-- **Precisão baixa (0,29):** a maior parte dos alertas é alarme falso. A escolha por custo aceita esse efeito de forma deliberada.
-- **Sobreajuste:** recall de 0,995 no treino contra 0,78 no teste. O modelo memoriza parte do treino.
-- **Dados estáticos:** o dataset é um retrato fixo, sem série temporal nem dados de campo.
-- **Uma única divisão de teste:** não foi feita validação cruzada completa.
+## O que eu faria a seguir
 
-## 9. Próximos passos
+- Fazer a validação cruzada, para ver se o resultado se mantém em várias divisões dos dados.
+- Experimentar modelos mais fortes, como Random Forest e Gradient Boosting, mantendo a conta de custo.
+- Ajustar o ponto de decisão do programa para diminuir os alarmes falsos sem perder muitas falhas.
 
-- Testar validação cruzada para medir a variação do recall.
-- Testar outros modelos de árvores (Random Forest, Gradient Boosting) mantendo o critério de custo.
-- Ajustar o limiar de decisão para reduzir alarmes falsos sem perder muito recall.
-
-## 10. Como executar
+## Como rodar no seu computador
 
 ```bash
 python3 -m venv .venv
@@ -97,14 +86,14 @@ pip install pandas seaborn matplotlib scikit-learn imbalanced-learn
 python3 manutencao_preditiva_final.py
 ```
 
-O script lê `manutencao_preditiva.csv`, treina os modelos e salva os gráficos na pasta.
+O programa lê o arquivo `manutencao_preditiva.csv`, treina os modelos e salva os gráficos na própria pasta.
 
-## 11. Tecnologias
+## Ferramentas usadas
 
-Python, Pandas, NumPy, Scikit-learn, Imbalanced-learn (SMOTE), Matplotlib e Seaborn.
+Python, Pandas, NumPy, Scikit-learn, Imbalanced-learn, Matplotlib e Seaborn.
 
-Desenvolvido com apoio de ferramentas de IA generativa. Os resultados foram conferidos e validados pelo autor.
+Usei ferramentas de inteligência artificial como apoio, mas conferi e validei os resultados por conta própria.
 
 ---
 
-Helyton Renato Gonçalves Ronchi · Novembro de 2026
+Helyton Renato Gonçalves Ronchi, novembro de 2026
