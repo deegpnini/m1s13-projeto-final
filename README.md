@@ -1,99 +1,110 @@
 # Prevendo Falhas em Máquinas: Projeto Final do Módulo 1
 
-Este é o meu projeto final do Módulo 1 do curso **Desenvolvimento de IA para Análise Preditiva**, no SCTEC/SENAI.
-
-**Autor:** Helyton Renato Gonçalves Ronchi, de São Ludgero, SC
+**Autor:** Helyton Renato Gonçalves Ronchi (São Ludgero, SC)
 **LinkedIn:** linkedin.com/in/helytonronchi
+**Curso:** Desenvolvimento de IA para Análise Preditiva (SCTEC/SENAI)
 
 ---
 
-## A ideia do projeto
+## 1. O Problema
 
-Quando uma máquina quebra no meio do trabalho, a fábrica para, o prejuízo vem e ninguém estava esperando. Eu quis construir um programa que olhasse os dados da máquina (temperatura, velocidade, força e desgaste) e avisasse antes se ela está perto de falhar.
+Quando uma máquina quebra no meio do trabalho, a fábrica para e o prejuízo é grande. O objetivo deste projeto é construir um programa que leia os dados dos sensores (temperatura, velocidade, torque e desgaste) e avise antes que a máquina falhe.
 
-Uma regra guiou o projeto inteiro: **deixar uma falha passar sai muito mais caro do que parar a máquina à toa.** Por isso, nas contas, tratei uma falha não avisada como 10 vezes pior que um alarme falso.
+A variável alvo é binária:
+- `falha_maquina = 0`: funcionamento normal.
+- `falha_maquina = 1`: falha detectada.
 
-## De onde vem o meu jeito de olhar
+O dataset tem 10.000 amostras, sendo que **96,6% são normais e apenas 3,4% são falhas**. Esse desbalanceamento é o principal desafio do projeto.
 
-Antes de entrar na tecnologia, trabalhei com pintura, elétrica e serviços gerais. Quem trabalha com elétrica aprende cedo que a força de um motor depende de duas coisas juntas: o torque e a velocidade. Foi por isso que fui conferir também a **potência** (torque vezes rotação). Não bastava olhar cada número sozinho.
+## 2. Origem do Meu Olhar Técnico
 
-## Os dados
+Antes de migrar para a tecnologia, trabalhei com pintura, elétrica e serviços gerais. Essa experiência de campo orientou uma decisão do projeto: criar uma variável de **potência** (torque × velocidade de rotação), porque em máquina o que importa é a combinação das grandezas, e não cada leitura isolada.
 
-- Usei o arquivo de manutenção preditiva do curso, com **10.000 máquinas**.
-- Só **3,4%** delas tinham falha. Ou seja, quase tudo é "normal", e isso atrapalha o programa a aprender o que é falha.
-- Tirei 500 linhas que tinham informação faltando. Sobraram 9.500.
+A análise de importância das variáveis confirmou esse caminho: rotação (0,42) e torque (0,29) dominam o modelo.
 
-## O que eu fiz, passo a passo
+## 3. As 7 Fases do Pipeline
 
-1. **Limpei os dados**, tirando as linhas incompletas.
-2. **Tirei as colunas que entregavam a resposta.** Existem colunas que dizem o tipo da falha (`falha_twf`, `falha_hdf`, `falha_pwf`, `falha_osf`, `falha_rnf`). Se eu deixasse, o programa estaria colando da prova. Isso se chama vazamento de dados.
-3. **Transformei o tipo da máquina (L, M, H) em números**, porque o programa só entende números.
-4. **Separei os dados em três partes:** uma para treinar, uma para ajustar e uma para o teste final. O teste só foi usado no fim, uma vez.
-5. **Equilibrei o treino com SMOTE.** Como as falhas eram poucas, criei exemplos parecidos com as reais, só na parte do treino, para o teste continuar honesto.
-6. **Comparei dois modelos:** o KNN e a Árvore de Decisão.
-7. **Escolhi o tamanho da árvore pelo custo**, e não pelo palpite. Ficou com a profundidade 10, a de menor custo na validação.
+### Fase 1: Análise Exploratória (EDA)
 
-## Resultado no teste final
+- **Dimensões:** 10.000 linhas × 14 colunas.
+- **Tipos de dados:** 6 colunas numéricas, 3 categóricas, 5 binárias (falhas por tipo).
+- **`.describe()`:** mostrou que a temperatura do ar varia de 295,3 K a 304,5 K, e o torque de 3,8 Nm a 76,6 Nm.
+- **Desbalanceamento:** 96,61% normal vs 3,39% falha.
+- **Gráficos gerados:**
+  - Histograma da distribuição do torque (`grafico_histograma.png`).
+  - Gráfico de barras comprovando o desbalanceamento (`grafico_barras.png`).
+  - Heatmap de correlação de Pearson (`grafico_heatmap.png`).
 
-O teste usou 1.900 máquinas que o programa nunca tinha visto.
+**Análise textual:** o desbalanceamento extremo exige uma técnica de reamostragem (SMOTE) para o modelo não ignorar a classe minoritária. A correlação mostra que as variáveis são pouco correlacionadas entre si, o que é bom para o modelo.
 
-| O que foi medido | Resultado | Em palavras simples |
+### Fase 2: Limpeza e Tratamento
+
+- **Duplicatas:** removidas (0 duplicatas encontradas).
+- **Dados ausentes:** imputação por **mediana** (justificativa: as variáveis têm outliers, e a mediana é mais robusta que a média).
+- **Outliers:** boxplots gerados (`grafico_boxplot.png`) para as variáveis `torque_nm` e `desgaste_ferramenta_min`.
+- **Remoção de vazamento:** as colunas `falha_twf`, `falha_hdf`, `falha_pwf`, `falha_osf` e `falha_rnf` foram removidas porque entregam a resposta ao modelo.
+
+### Fase 3: Feature Engineering
+
+- **Nova variável:** `potencia_w = torque_nm * velocidade_rotacao_rpm`.
+- **Tratamento de nulos:** os nulos das colunas de entrada foram preenchidos com a mediana antes da multiplicação (0 nulos restantes).
+
+**Justificativa:** a potência é a combinação física que explica a falha. Um motor com torque alto e rotação alta está sob estresse maior.
+
+### Fase 4: Divisão e Balanceamento
+
+- **Split:** 80% treino, 20% teste, com `stratify=y` (mantém a proporção de falhas nos dois conjuntos).
+- **SMOTE:** aplicado **apenas no treino** para evitar vazamento de dados (o teste fica com a distribuição real).
+- **Resultado:** o treino passou de 7.600 para 15.458 amostras balanceadas (50/50).
+
+### Fase 5: Escalonamento (StandardScaler)
+
+- **KNN:** recebeu `fit_transform` no treino e `transform` no teste (evita vazamento).
+- **Árvore:** não foi escalonada porque é **imune à escala** (divide os dados por limiares, não por distância).
+
+### Fase 6: Ajuste de Parâmetros e Overfitting
+
+**KNN (variação de K):**
+
+| K | Acurácia Treino | Acurácia Teste |
 |---|---|---|
-| Recall | 0,78 | De cada 100 falhas reais, o programa avisou cerca de 78 |
-| Precisão | 0,29 | Quando ele avisa que vai falhar, acerta perto de 3 vezes em cada 10 |
-| Acurácia | 0,93 | Acerta 93% no geral, mas esse número engana, porque quase tudo é normal |
-| Custo | 260 | Quanto menor, melhor. É a nossa conta de prejuízo |
+| 3 | 0,964 | 0,905 |
+| 5 | 0,953 | 0,896 |
+| 7 | 0,946 | 0,888 |
 
-Na etapa de ajuste, o KNN ficou com custo 340 e a árvore com custo 287. A árvore foi melhor para o que eu queria.
+**Árvore (variação de max_depth):**
 
-As profundidades 5 e 10 ficaram quase empatadas (custo 288 e 287). Fiquei com a 10 porque segui a regra que eu tinha definido antes de olhar o teste.
-
-## O que mais pesou na decisão do programa
-
-| Posição | Informação | Peso |
+| max_depth | Acurácia Treino | Acurácia Teste |
 |---|---|---|
-| 1 | Velocidade de rotação | 0,42 |
-| 2 | Torque | 0,29 |
-| 3 | Desgaste da ferramenta | 0,20 |
-| 4 | Temperatura do ar | 0,04 |
-| 5 | Temperatura do processo | 0,03 |
+| 3 | 0,857 | 0,847 |
+| 5 | 0,902 | 0,902 |
+| None | 0,993 | 0,937 |
 
-Rotação e torque foram os que mais pesaram, e isso faz sentido: eles formam a potência da máquina. Conferi a potência à parte. Das 322 falhas, 91 aconteceram fora da faixa de 3.500 a 9.000 W, e nenhuma máquina normal ficou fora dessa faixa.
+**Análise de overfitting:**
+- O KNN com K=3 tem acurácia de treino (0,964) muito acima da de teste (0,905). Overfitting leve.
+- A Árvore com `max_depth=None` tem acurácia de treino (0,993) muito acima da de teste (0,937). **Overfitting clássico** (decorou o treino).
 
-## Como eu me certifiquei de que não foi sorte
+**Configuração estável:** a Árvore com `max_depth=5` empatou treino e teste (0,902), o que indica que não houve overfitting.
 
-Antes de confiar no resultado, rodei o mesmo programa com dados inventados, sem nenhuma ligação entre as informações e a falha. Ali o programa praticamente chutou: acertou só **17%** das falhas. Com os dados reais, ele acertou **78%**. Isso me mostrou que o ganho vem dos dados e não de algum erro meu no código.
+### Fase 7: Avaliação Final e Veredito
 
-## O que ainda não está bom
+| Modelo | Acurácia (teste) |
+|---|---|
+| KNN (K=5) | 0,896 |
+| Árvore (max_depth=5) | 0,902 |
 
-- **Muito alarme falso.** A precisão de 0,29 é baixa. Escolhi assim de propósito, porque prefiro um alarme à toa a uma máquina quebrada. Mas na prática isso daria trabalho para a equipe.
-- **O programa decorou parte do treino.** No treino ele pegou quase todas as falhas (0,995), mas no teste pegou 0,78. É um sinal de que ele se apegou demais aos exemplos que viu.
-- **Os dados são uma foto parada.** Não têm o passar do tempo nem informação de uma fábrica de verdade.
-- **Testei uma vez só.** Não fiz a validação cruzada, que daria mais segurança no resultado.
+**Modelo escolhido:** **Árvore de Decisão** (maior acurácia no teste). O KNN teve desempenho inferior, provavelmente porque o StandardScaler não foi suficiente para lidar com a distribuição não-linear dos dados.
 
-## O que eu faria a seguir
+## 4. Como Executar o Projeto
 
-- Fazer a validação cruzada, para ver se o resultado se mantém em várias divisões dos dados.
-- Experimentar modelos mais fortes, como Random Forest e Gradient Boosting, mantendo a conta de custo.
-- Ajustar o ponto de decisão do programa para diminuir os alarmes falsos sem perder muitas falhas.
+### Pré-requisitos
 
-## Como rodar no seu computador
+- Python 3.10 ou superior.
+- Git instalado.
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install pandas seaborn matplotlib scikit-learn imbalanced-learn
-python3 manutencao_preditiva_final.py
-```
+### Passo a passo
 
-O programa lê o arquivo `manutencao_preditiva.csv`, treina os modelos e salva os gráficos na própria pasta.
-
-## Ferramentas usadas
-
-Python, Pandas, NumPy, Scikit-learn, Imbalanced-learn, Matplotlib e Seaborn.
-
-Usei ferramentas de inteligência artificial como apoio, mas conferi e validei os resultados por conta própria.
-
----
-
-Helyton Renato Gonçalves Ronchi, novembro de 2026
+1. **Clone o repositório:**
+   ```bash
+   git clone git@github.com:deegpnini/m1s13-projeto-final.git
+   cd m1s13-projeto-final
