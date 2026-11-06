@@ -117,3 +117,12 @@ O vídeo de até 7 minutos, com a demonstração do terminal e do dashboard, est
 ---
 
 **Helyton Renato Gonçalves Ronchi**, novembro de 2026.
+
+## 5.1. Código do Dashboard
+
+O código do dashboard está disponível no repositório:
+https://github.com/deegpnini/m1s13-projeto-final/blob/master/dashboard.py
+
+Para rodar na sua máquina:
+pip install streamlit
+streamlit run dashboard.py
