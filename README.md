@@ -1,7 +1,9 @@
 # Prevendo Falhas em Máquinas: Projeto Final do Módulo 1
 
 **Autor:** Helyton Renato Gonçalves Ronchi (São Ludgero, SC)
+
 **LinkedIn:** linkedin.com/in/helytonronchi
+
 **Curso:** Desenvolvimento de IA para Análise Preditiva (SCTEC/SENAI)
 
 ---
