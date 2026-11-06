@@ -25,90 +25,95 @@ A análise de importância das variáveis confirmou esse caminho: rotação (0,4
 ## 3. As 7 Fases do Pipeline
 
 ### Fase 1: Análise Exploratória (EDA)
-
 - **Dimensões:** 10.000 linhas × 14 colunas.
-- **Tipos de dados:** 6 colunas numéricas, 3 categóricas, 5 binárias (falhas por tipo).
-- **`.describe()`:** mostrou que a temperatura do ar varia de 295,3 K a 304,5 K, e o torque de 3,8 Nm a 76,6 Nm.
+- **.describe():** temperatura do ar de 295,3 K a 304,5 K; torque de 3,8 Nm a 76,6 Nm.
 - **Desbalanceamento:** 96,61% normal vs 3,39% falha.
-- **Gráficos gerados:**
-  - Histograma da distribuição do torque (`grafico_histograma.png`).
-  - Gráfico de barras comprovando o desbalanceamento (`grafico_barras.png`).
-  - Heatmap de correlação de Pearson (`grafico_heatmap.png`).
-
-**Análise textual:** o desbalanceamento extremo exige uma técnica de reamostragem (SMOTE) para o modelo não ignorar a classe minoritária. A correlação mostra que as variáveis são pouco correlacionadas entre si, o que é bom para o modelo.
+- **Gráficos:** histograma do torque, barras de desbalanceamento, heatmap de correlação.
 
 ### Fase 2: Limpeza e Tratamento
-
-- **Duplicatas:** removidas (0 duplicatas encontradas).
-- **Dados ausentes:** imputação por **mediana** (justificativa: as variáveis têm outliers, e a mediana é mais robusta que a média).
-- **Outliers:** boxplots gerados (`grafico_boxplot.png`) para as variáveis `torque_nm` e `desgaste_ferramenta_min`.
-- **Remoção de vazamento:** as colunas `falha_twf`, `falha_hdf`, `falha_pwf`, `falha_osf` e `falha_rnf` foram removidas porque entregam a resposta ao modelo.
+- **Duplicatas:** removidas (0 encontradas).
+- **Dados ausentes:** imputação por **mediana** (robusta a outliers).
+- **Outliers:** boxplots de torque_nm e desgaste_ferramenta_min.
+- **Vazamento:** colunas falha_twf, falha_hdf, falha_pwf, falha_osf, falha_rnf removidas.
 
 ### Fase 3: Feature Engineering
-
-- **Nova variável:** `potencia_w = torque_nm * velocidade_rotacao_rpm`.
-- **Tratamento de nulos:** os nulos das colunas de entrada foram preenchidos com a mediana antes da multiplicação (0 nulos restantes).
-
-**Justificativa:** a potência é a combinação física que explica a falha. Um motor com torque alto e rotação alta está sob estresse maior.
+- **Nova variável:** potencia_w = torque_nm * velocidade_rotacao_rpm.
+- **Nulos:** 0 após imputação.
 
 ### Fase 4: Divisão e Balanceamento
+- **Split:** 80/20 com stratify=y.
+- **SMOTE:** apenas no treino (7.600 → 15.458 amostras balanceadas).
 
-- **Split:** 80% treino, 20% teste, com `stratify=y` (mantém a proporção de falhas nos dois conjuntos).
-- **SMOTE:** aplicado **apenas no treino** para evitar vazamento de dados (o teste fica com a distribuição real).
-- **Resultado:** o treino passou de 7.600 para 15.458 amostras balanceadas (50/50).
-
-### Fase 5: Escalonamento (StandardScaler)
-
-- **KNN:** recebeu `fit_transform` no treino e `transform` no teste (evita vazamento).
-- **Árvore:** não foi escalonada porque é **imune à escala** (divide os dados por limiares, não por distância).
+### Fase 5: Escalonamento
+- **KNN:** fit_transform no treino, transform no teste.
+- **Árvore:** sem escalonamento (imune à escala).
 
 ### Fase 6: Ajuste de Parâmetros e Overfitting
+- **KNN:** K=3 (0,964 treino / 0,905 teste), K=5 (0,953 / 0,896), K=7 (0,946 / 0,888).
+- **Árvore:** max_depth=3 (0,857 / 0,847), max_depth=5 (0,902 / 0,902), max_depth=None (0,993 / 0,937).
+- **Overfitting:** max_depth=None decorou o treino. A configuração estável foi max_depth=5.
 
-**KNN (variação de K):**
-
-| K | Acurácia Treino | Acurácia Teste |
-|---|---|---|
-| 3 | 0,964 | 0,905 |
-| 5 | 0,953 | 0,896 |
-| 7 | 0,946 | 0,888 |
-
-**Árvore (variação de max_depth):**
-
-| max_depth | Acurácia Treino | Acurácia Teste |
-|---|---|---|
-| 3 | 0,857 | 0,847 |
-| 5 | 0,902 | 0,902 |
-| None | 0,993 | 0,937 |
-
-**Análise de overfitting:**
-- O KNN com K=3 tem acurácia de treino (0,964) muito acima da de teste (0,905). Overfitting leve.
-- A Árvore com `max_depth=None` tem acurácia de treino (0,993) muito acima da de teste (0,937). **Overfitting clássico** (decorou o treino).
-
-**Configuração estável:** a Árvore com `max_depth=5` empatou treino e teste (0,902), o que indica que não houve overfitting.
-
-### Fase 7: Avaliação Final e Veredito
-
+### Fase 7: Avaliação Final
 | Modelo | Acurácia (teste) |
 |---|---|
 | KNN (K=5) | 0,896 |
 | Árvore (max_depth=5) | 0,902 |
 
-**Modelo escolhido:** **Árvore de Decisão** (maior acurácia no teste).
+**Modelo escolhido:** Árvore de Decisão (maior acurácia no teste).
 
-**Sobre a escolha do KNN:** no teste, o K=3 ficou um pouco na frente (0,905 contra 0,896). Mesmo assim, usei K=5 na comparação final porque a diferença entre treino e teste é menor — ou seja, menos cheiro de modelo que decorou a prova. No fim, o que venceu foi a árvore com profundidade 5: treino e teste empatados em 0,902, sem overfitting.
-
-Em fábrica, alarme que mente toda hora também custa. Por isso estabilidade pesou tanto quanto o número cheio.
+**Sobre o KNN:** K=3 ganhou no teste (0,905), mas K=5 foi escolhido por ter menor gap treino-teste (menos overfitting).
 
 ## 4. Como Executar o Projeto
 
-### Pré-requisitos
+git clone git@github.com:deegpnini/m1s13-projeto-final.git
+cd m1s13-projeto-final
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python pipeline_m1s13.py
 
-- Python 3.10 ou superior.
-- Git instalado.
+**Script oficial:** pipeline_m1s13.py (as 7 fases do edital).
 
-### Passo a passo
+## 5. Dashboard Interativo (Extra)
 
-1. **Clone o repositório:**
-   ```bash
-   git clone git@github.com:deegpnini/m1s13-projeto-final.git
-   cd m1s13-projeto-final
+Criei um dashboard em Streamlit (dashboard.py) para mostrar o modelo "operando" uma máquina. O operador ajusta os sliders (torque, rpm, desgaste, temperaturas) e o painel mostra:
+- A potência calculada (torque × rpm).
+- O status da máquina: verde (normal) ou vermelho (alerta de falha).
+- A acurácia do modelo (0,902).
+
+Para rodar:
+pip install streamlit
+streamlit run dashboard.py
+
+## 6. Git
+
+- **Branch principal:** master (código final).
+- **Branch de desenvolvimento:** develop (ajustes e experimentos).
+
+## 7. Limitações (Honestidade Radical)
+
+- **Precisão baixa:** a acurácia é alta (0,902), mas a precisão da classe falha é baixa. Em produção, muitos alarmes falsos ocorreriam.
+- **Overfitting:** max_depth=None decorou o treino. A configuração escolhida (max_depth=5) evita isso.
+- **Dados estáticos:** o dataset é um retrato fixo, sem série temporal.
+- **Acurácia engana:** com 96,6% de máquinas normais, um modelo que chuta "tudo normal" acerta quase isso.
+
+## 8. Melhorias Futuras
+
+- Validação cruzada para medir a variação da acurácia.
+- Testar Random Forest e Gradient Boosting.
+- Ajustar o limiar de decisão para reduzir alarmes falsos.
+
+## 9. Tecnologias
+
+Python, Pandas, NumPy, Scikit-learn, Imbalanced-learn, Matplotlib, Seaborn e Streamlit.
+
+Usei ferramentas de inteligência artificial como apoio, mas conferi e validei os resultados por conta própria.
+
+## 10. Vídeo de Apresentação
+
+O vídeo de até 7 minutos, com a demonstração do terminal e do dashboard, está disponível no link abaixo:
+[COLE AQUI O LINK DO GOOGLE DRIVE QUANDO GRAVAR]
+
+---
+
+**Helyton Renato Gonçalves Ronchi**, novembro de 2026.
