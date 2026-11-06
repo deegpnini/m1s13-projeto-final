@@ -74,3 +74,25 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 python pipeline_m1s13.py
+
+## 5. Dashboard Interativo (Extra)
+
+Criei um dashboard em Streamlit (dashboard.py) para mostrar o modelo "operando" uma máquina. O operador ajusta os sliders (torque, rpm, desgaste, temperaturas) e o painel mostra:
+- A potência calculada (torque × rpm).
+- O status da máquina: verde (normal) ou vermelho (alerta de falha).
+- A chance de falha (probabilidade do modelo).
+- A leitura dos sensores em uma tabela.
+
+Para rodar:
+```bash
+pip install streamlit
+streamlit run dashboard.py
+
+## 10. Vídeo de Apresentação
+
+O vídeo de até 7 minutos, com a demonstração do terminal e do dashboard, está disponível no link abaixo:
+[COLE AQUI O LINK DO GOOGLE DRIVE QUANDO GRAVAR]
+
+---
+
+**Helyton Renato Gonçalves Ronchi**, novembro de 2026.
