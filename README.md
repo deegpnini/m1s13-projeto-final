@@ -93,7 +93,11 @@ A análise de importância das variáveis confirmou esse caminho: rotação (0,4
 | KNN (K=5) | 0,896 |
 | Árvore (max_depth=5) | 0,902 |
 
-**Modelo escolhido:** **Árvore de Decisão** (maior acurácia no teste). O KNN teve desempenho inferior, provavelmente porque o StandardScaler não foi suficiente para lidar com a distribuição não-linear dos dados.
+**Modelo escolhido:** **Árvore de Decisão** (maior acurácia no teste).
+
+**Sobre a escolha do KNN:** no teste, o K=3 ficou um pouco na frente (0,905 contra 0,896). Mesmo assim, usei K=5 na comparação final porque a diferença entre treino e teste é menor — ou seja, menos cheiro de modelo que decorou a prova. No fim, o que venceu foi a árvore com profundidade 5: treino e teste empatados em 0,902, sem overfitting.
+
+Em fábrica, alarme que mente toda hora também custa. Por isso estabilidade pesou tanto quanto o número cheio.
 
 ## 4. Como Executar o Projeto
 
