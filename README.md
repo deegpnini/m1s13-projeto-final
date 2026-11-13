@@ -2,12 +2,16 @@
 
 **Autor:** Helyton Renato Gonçalves Ronchi (São Ludgero, SC)
 **LinkedIn:** linkedin.com/in/helytonronchi
-**Curso:** Desenvolvimento de IA para Análise Preditiva (SCTEC/SENAI)
+**Curso:** Desenvolvimento de IA para Análise Preditiva, T4 (SCTEC/SENAI)
+
+**Arquivos principais:**
+- `notebook_final.ipynb`: Notebook Jupyter completo com as 7 fases, as células de texto justificando as decisões e os gráficos.
+- `pipeline_m1s13.py`: Versão em script Python com a mesma lógica, para rodar direto no terminal.
 
 ## 1. O Problema
 Quando uma máquina quebra no meio do trabalho, a fábrica para e o prejuízo é grande. O objetivo deste projeto é construir um programa que leia os dados dos sensores (temperatura, velocidade, torque e desgaste) e avise antes que a máquina falhe.
 
-A variável alvo é binária: falha_maquina = 0 (normal) ou 1 (falha). O dataset tem 10.000 amostras, sendo que 96,6% são normais e apenas 3,4% são falhas. Esse desbalanceamento é o principal desafio do projeto.
+A variável alvo é binária: `falha_maquina = 0` (normal) ou `1` (falha). O dataset tem 10.000 amostras, sendo que 96,6% são normais e apenas 3,4% são falhas. Esse desbalanceamento é o principal desafio do projeto.
 
 ## 2. Origem do Meu Olhar Técnico
 Antes de migrar para a tecnologia, trabalhei com pintura, elétrica e serviços gerais. Essa experiência de campo orientou uma decisão do projeto: criar uma variável de potência (torque × velocidade de rotação), porque em máquina o que importa é a combinação das grandezas, e não cada leitura isolada. A potência foi calculada em watts de verdade (torque × rpm × 2π/60).
@@ -41,6 +45,9 @@ Antes de migrar para a tecnologia, trabalhei com pintura, elétrica e serviços 
 - Árvore: testadas max_depth=3, 5 e None.
 - Overfitting: max_depth=None decorou o treino (0.993) e caiu no teste (0.940). Depth=5 foi o equilíbrio.
 
+**Fase 7: Avaliação Final e Veredito**
+- Modelo obrigatório vencedor: **Árvore de Decisão (max_depth=5)**, com acurácia de **0.925** no teste, superando o KNN (0.910).
+
 ## 4. Comparação de Modelos (Bônus)
 Além dos modelos obrigatórios (KNN e Árvore), testei dois modelos de ensemble (Random Forest e Gradient Boosting) para comparar o desempenho:
 
@@ -51,9 +58,10 @@ Além dos modelos obrigatórios (KNN e Árvore), testei dois modelos de ensemble
 | Random Forest | 0.913 |
 | **Gradient Boosting** | **0.928** |
 
-**Veredito:** O Gradient Boosting apresentou o melhor desempenho (92,8% de acurácia), superando a Árvore de Decisão (92,5%). Em um cenário real, o Gradient Boosting seria adotado por combinar a robustez das árvores com o poder do boosting.
+**Veredito Final:** Entre os modelos obrigatórios, a Árvore de Decisão venceu o KNN. Como bônus, o Gradient Boosting apresentou o melhor desempenho geral (92,8%), combinando a robustez das árvores com o poder do boosting.
 
 ## 5. Como Executar o Projeto
+Para rodar o pipeline principal:
 git clone https://github.com/deegpnini/oikos-machine.git
 cd oikos-machine
 python3 -m venv .venv
@@ -61,32 +69,33 @@ source .venv/bin/activate
 pip install -r requirements.txt
 python3 pipeline_m1s13.py
 
+Para rodar o notebook, basta abrir o arquivo notebook_final.ipynb no Jupyter ou no Google Colab.
+
 ## 6. Dashboard Interativo (Extra)
-Criei um dashboard em Streamlit (dashboard.py) para mostrar o modelo operando uma máquina. O operador ajusta os sliders e o painel mostra a potência calculada, o status e a chance de falha.
+Criei um dashboard em Streamlit (dashboard.py) para mostrar o modelo operando uma maquina. O operador ajusta os sliders e o painel mostra a potencia calculada, o status e a chance de falha.
 
 Para rodar localmente:
 pip install streamlit
 streamlit run dashboard.py
 
-O código do dashboard está versionado no repositório e roda localmente.
+O codigo do dashboard esta versionado no repositorio e roda localmente.
 
 ## 7. Git
 - Branch principal: main.
 - Branch de desenvolvimento: develop.
 - Branches feature: feature/corrige-pipeline, feature/atualiza-readme, etc.
 
-## 8. Limitações (Honestidade Radical)
-- Precisão baixa: de cada 100 alertas, só 23 são falhas reais. O recall é 0,78.
-- Dados estáticos: o dataset é um retrato fixo.
-- Acurácia engana: com 96,6% normais, um modelo que chuta "tudo normal" acerta quase isso.
+## 8. Limitacoes (Honestidade Radical)
+- Precisao baixa: de cada 100 alertas, so 23 sao falhas reais. O recall e 0,78.
+- Dados estaticos: o dataset e um retrato fixo.
+- Acuracia engana: com 96,6% normais, um modelo que chuta "tudo normal" acerta quase isso.
 
 ## 9. Tecnologias
 Python, Pandas, NumPy, Scikit-learn, Imbalanced-learn, Matplotlib, Seaborn e Streamlit.
 
-Usei ferramentas de inteligência artificial como apoio, mas conferi e validei os resultados.
+Usei ferramentas de inteligencia artificial como apoio, mas conferi e validei os resultados.
 
-## 10. Vídeo de Apresentação
-O vídeo de até 7 minutos está disponível no link abaixo:
+## 10. Video
 [COLE AQUI O LINK DO GOOGLE DRIVE QUANDO GRAVAR]
 
-Helyton Renato Gonçalves Ronchi, novembro de 2026.
+Helyton Renato Goncalves Ronchi, novembro de 2026.
