@@ -1,4 +1,4 @@
-# Oikos Machine: Manutenção Preditiva para a Indústria 4.0
+# Oikos Machine: Manutenção Preditiva para a Indústria (P/Final-M1)
 
 **Autor:** Helyton Renato Gonçalves Ronchi (São Ludgero, SC)
 **LinkedIn:** linkedin.com/in/helytonronchi
